@@ -918,6 +918,7 @@ public static Properties getProperties() {
 		security.checkPropertiesAccess();
 	}
 	/*[ENDIF] JAVA_SPEC_VERSION < 24 */
+	J9VMInternals.initialize(Security.class);
 	return systemProperties;
 }
 
@@ -1003,6 +1004,10 @@ public static String getProperty(String prop, String defaultValue) {
 			return fileEncoding;
 		}
 		throw new Error("bootstrap error, system property access before init: " + prop); //$NON-NLS-1$
+	}
+	if (prop.equals("com.ibm.fips.mode")) { //$NON-NLS-1$
+		// Ensure the Security class is loaded and initialized.
+		J9VMInternals.initialize(Security.class);
 	}
 
 	return systemProperties.getProperty(prop, defaultValue);
