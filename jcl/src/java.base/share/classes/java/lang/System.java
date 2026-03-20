@@ -918,7 +918,7 @@ public static Properties getProperties() {
 		security.checkPropertiesAccess();
 	}
 	/*[ENDIF] JAVA_SPEC_VERSION < 24 */
-	J9VMInternals.initialize(Security.class);
+	Security.getProviders();
 	return systemProperties;
 }
 
