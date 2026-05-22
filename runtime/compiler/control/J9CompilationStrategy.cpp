@@ -703,6 +703,9 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileIf
             // promote this method through sample thresholds
         } else // allow transition to HOT through exhaustion of count
         {
+            if (_methodInfo->InhibitRecompilation()) {
+                return;
+            }
             _recompile = true;
             TR::Recompilation::limitMethodsCompiled++;
             // Currently the counter can be decremented because (1) the method was
@@ -931,10 +934,9 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileBa
             hotStartCountDelta = 0xffff;
         _bodyInfo->setHotStartCountDelta(hotStartCountDelta);
     }
-
     if (_recompile) {
         // One more test
-        if (!_isAlreadyBeingCompiled) {
+        if (!_isAlreadyBeingCompiled && !_methodInfo->InhibitRecompilation()) {
             _methodInfo->setReasonForRecompilation(TR_PersistentMethodInfo::RecompDueToThreshold);
         } else // the method is already being compiled; maybe we need to update the opt level
         {
@@ -965,6 +967,10 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileBa
 
 void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileLessOptimizedMethods()
 {
+    if (_methodInfo->InhibitRecompilation()) {
+        _recompile = false;
+        return;
+    }
     if (_bodyInfo->getFastRecompilation() && !_isAlreadyBeingCompiled) {
         // Allow profiling even if we are about to exhaust the code cache
         // because this case is used for diagnostic only
