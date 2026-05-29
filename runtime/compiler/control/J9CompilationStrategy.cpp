@@ -694,7 +694,7 @@ bool J9::CompilationStrategy::ProcessJittedSample::shouldProcessSample()
 
 void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileIfCountHitsZero()
 {
-    if (!_isAlreadyBeingCompiled) {
+    if (!_isAlreadyBeingCompiled && !_methodInfo->InhibitRecompilation()) {
         // do not allow scorching compiles based on count reaching 0
         if (_methodInfo->getNextCompileLevel() > hot) {
             // replenish the counter with a multiple of sampleInterval
@@ -703,9 +703,6 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileIf
             // promote this method through sample thresholds
         } else // allow transition to HOT through exhaustion of count
         {
-            if (_methodInfo->InhibitRecompilation()) {
-                return;
-            }
             _recompile = true;
             TR::Recompilation::limitMethodsCompiled++;
             // Currently the counter can be decremented because (1) the method was
@@ -967,11 +964,7 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileBa
 
 void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileLessOptimizedMethods()
 {
-    if (_methodInfo->InhibitRecompilation()) {
-        _recompile = false;
-        return;
-    }
-    if (_bodyInfo->getFastRecompilation() && !_isAlreadyBeingCompiled) {
+    if (_bodyInfo->getFastRecompilation() && !_isAlreadyBeingCompiled && !_methodInfo->InhibitRecompilation()) {
         // Allow profiling even if we are about to exhaust the code cache
         // because this case is used for diagnostic only
         if (_bodyInfo->getFastScorchingRecompilation()) {
@@ -1011,7 +1004,7 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileLe
         if ((uint32_t)_crtSampleIntervalCount >= threshold
             && _compInfo->getMethodQueueSize() <= TR::CompilationInfo::SMALL_QUEUE
             && !_compInfo->getPersistentInfo()->isClassLoadingPhase() && !_isAlreadyBeingCompiled
-            && !_cmdLineOptions->getOption(TR_DisableUpgradingColdCompilations)) {
+            && !_cmdLineOptions->getOption(TR_DisableUpgradingColdCompilations) && !_methodInfo->InhibitRecompilation()) {
             _recompile = true;
             if (!_bodyInfo->getIsAotedBody()) {
                 // cold-nonaot compilations can only be upgraded to warm
