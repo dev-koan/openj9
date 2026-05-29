@@ -1004,7 +1004,8 @@ void J9::CompilationStrategy::ProcessJittedSample::determineWhetherToRecompileLe
         if ((uint32_t)_crtSampleIntervalCount >= threshold
             && _compInfo->getMethodQueueSize() <= TR::CompilationInfo::SMALL_QUEUE
             && !_compInfo->getPersistentInfo()->isClassLoadingPhase() && !_isAlreadyBeingCompiled
-            && !_cmdLineOptions->getOption(TR_DisableUpgradingColdCompilations) && !_methodInfo->InhibitRecompilation()) {
+            && !_cmdLineOptions->getOption(TR_DisableUpgradingColdCompilations)
+            && !_methodInfo->InhibitRecompilation()) {
             _recompile = true;
             if (!_bodyInfo->getIsAotedBody()) {
                 // cold-nonaot compilations can only be upgraded to warm
